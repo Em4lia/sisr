@@ -1,5 +1,8 @@
 # Maven
 target/
+*.tokens
+*.interp
+*.class
 
 # IntelliJ IDEA
 .idea/
