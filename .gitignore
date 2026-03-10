@@ -9,3 +9,12 @@ out/
 # OS
 .DS_Store
 /src/main/java/org/labs/javaL.tokens
+/src/main/java/org/labs/javaL.interp
+/src/main/java/org/labs/javaLBaseListener.java
+/src/main/java/org/labs/javaLBaseVisitor.java
+/src/main/java/org/labs/javaLLexer.java
+/src/main/java/org/labs/javaLLexer.interp
+/src/main/java/org/labs/javaLLexer.tokens
+/src/main/java/org/labs/javaLListener.java
+/src/main/java/org/labs/javaLParser.java
+/src/main/java/org/labs/javaLVisitor.java
