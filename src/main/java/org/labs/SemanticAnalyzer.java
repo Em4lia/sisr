@@ -153,7 +153,7 @@ public class SemanticAnalyzer extends javaLBaseVisitor<String> {
     @Override
     public String visitWhileStatement(javaLParser.WhileStatementContext ctx) {
         String condType = visit(ctx.expression());
-        if (condType != null && !condType.equals("boolean")) {
+        if (condType != null && !condType.equals("boolean") && !condType.equals("unknown")) {
             reportError(ctx.expression().getStart(), "Умова циклу має бути boolean, отримано: " + condType);
         }
 
@@ -173,7 +173,7 @@ public class SemanticAnalyzer extends javaLBaseVisitor<String> {
     @Override
     public String visitIfStatement(javaLParser.IfStatementContext ctx) {
         String condType = visit(ctx.expression());
-        if (condType != null && !condType.equals("boolean")) {
+        if (condType != null && !condType.equals("boolean") && !condType.equals("unknown")) {
             reportError(ctx.expression().getStart(), "Умова if має бути boolean, отримано: " + condType);
         }
 
@@ -316,7 +316,8 @@ public class SemanticAnalyzer extends javaLBaseVisitor<String> {
         String left = visit(ctx.expression(0));
         String right = visit(ctx.expression(1));
         if (left != null && right != null && (!isNumeric(left) || !isNumeric(right))) {
-            reportError(ctx.getStart(), "Операції порівняння доступні лише для чисел.");
+            if (!left.equals("unknown") && !right.equals("unknown"))
+                 reportError(ctx.getStart(), "Операції порівняння доступні лише для чисел.");
         }
         return "boolean";
     }
@@ -337,7 +338,8 @@ public class SemanticAnalyzer extends javaLBaseVisitor<String> {
         String left = visit(ctx.expression(0));
         String right = visit(ctx.expression(1));
         if (left != null && right != null && (!left.equals("boolean") || !right.equals("boolean"))) {
-            reportError(ctx.getStart(), "Логічні операції доступні лише для boolean.");
+             if (!left.equals("unknown") && !right.equals("unknown"))
+                 reportError(ctx.getStart(), "Логічні операції доступні лише для boolean.");
         }
         return "boolean";
     }

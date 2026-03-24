@@ -13,8 +13,7 @@ classModifier: 'public' | 'private' | 'abstract' | 'static';
 fieldDeclaration: type ID (ASSIGN expression)? SEMICOLON ;
 
 methodDeclaration
-    : (VOID | type) ID LPAREN (parameter (COMMA parameter)*)? RPAREN LBRACE statement* RBRACE
-    ;
+    : (VOID | type) ID LPAREN (parameter (COMMA parameter)*)? RPAREN LBRACE statement* RBRACE;
 
 parameter: type ID ;
 

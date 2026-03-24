@@ -3,71 +3,44 @@ package org.labs;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.gui.TreeViewer;
-import java.util.Arrays;
+import java.io.File;
 
 import javax.swing.*;
 import java.util.List;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class Main extends JFrame {
-    private JTextArea inputTextBox;
-    private JTextPane outputTextPane;
+    private final JTextArea inputTextBox;
+    private final JTextPane outputTextPane;
 
     public Main() {
-        setTitle("Java IDE - Lab 3");
+        setTitle("Java IDE - Lab 4");
         setSize(800, 600);
         setMinimumSize(new Dimension(600, 400));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         inputTextBox = new JTextArea(
-                "class SemanticTest {\n" +
-                        "    int globalVar;\n\n" +
-                        "    int calculate(int a, double b) {\n" +
-                        "        return a + 10;\n" +
-                        "    }\n\n" +
-                        "    void process() {\n" +
-                        "        // повторне оголошення (помилка)\n" +
-                        "        int x = 5;\n" +
-                        "        double x = 10.5;\n\n" +
-                        "        // невикористана змінна (попередження)\n" +
-                        "        int unusedVar = 100;\n\n" +
-                        "        // використання неоголошеної змінної (помилка)\n" +
-                        "        y = 20;\n\n" +
-                        "        // несумісні типи при присвоєнні (помилка)\n" +
-                        "        int z = 5.5;\n\n" +
-                        "        // індекс масиву має бути int (помилка)\n" +
-                        "        int[] arr;\n" +
-                        "        arr[5.5] = 10;\n\n" +
-                        "        // умова if не є boolean (помилка)\n" +
-                        "        if (z + 5) {\n" +
-                        "            z = 1;\n" +
-                        "        }\n\n" +
-                        "        // недосяжний код (попередження)\n" +
-                        "        if (false) {\n" +
-                        "            z = 2;\n" +
-                        "        }\n\n" +
-                        "        // break поза циклом (помилка)\n" +
-                        "        break;\n\n" +
-                        "        // нескінченний цикл (попередження)\n" +
-                        "        while (true) {\n" +
-                        "            z = z + 1;\n" +
-                        "        }\n\n" +
-                        "        // помилки виклику функцій (помилка)\n" +
-                        "        int res1 = calculate(10);           // бракує аргументу\n" +
-                        "        int res2 = calculate(10, true);     // неправильний тип (boolean замість double)\n\n" +
-                        "        // операції з несумісними типами (помилка)\n" +
-                        "        boolean flag = true;\n" +
-                        "        int badMath = 10 + flag;\n" +
-                        "    }\n\n" +
-                        "    // невірний тип повернення (помилка)\n" +
-                        "    double getNumber() {\n" +
-                        "        return true;\n" +
-                        "    }\n" +
-                        "}"
+                """
+                class Test {
+                    int main() {
+                        int x = 10;
+                        int y = 5;
+                        int z = x + y * 2;
+                        if (z > 15) {
+                            z = z - 10;
+                        } else {
+                            z = z + 10;
+                        }
+                        int count = 0;
+                        while (count < 3) {
+                            z = z + 1;
+                            count = count + 1;
+                        }
+                        return z;
+                    }
+                }
+                """
         );
 
         inputTextBox.setFont(new Font("Monospaced", Font.PLAIN, 14));
@@ -82,14 +55,11 @@ public class Main extends JFrame {
         outputTextPane.setBackground(new Color(0, 0, 0));
         outputTextPane.setFont(new Font("Monospace", Font.PLAIN, 14));
         JScrollPane outputScroll = new JScrollPane(outputTextPane);
-        outputScroll.setBorder(BorderFactory.createTitledBorder("Результат лексичного аналізу"));
+        outputScroll.setBorder(BorderFactory.createTitledBorder("Результат виконання"));
 
-        JButton analyzeButton = new JButton("Виконати аналіз");
-        analyzeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                startAnalysis();
-            }
+        JButton analyzeButton = new JButton("Скомпілювати");
+        analyzeButton.addActionListener(e -> {
+            new Thread(() -> startAnalysis()).start();
         });
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, inputScroll, outputScroll);
@@ -100,24 +70,24 @@ public class Main extends JFrame {
     }
 
     private void appendColoredText(JTextPane pane, String text, Color color) {
-        javax.swing.text.StyledDocument doc = pane.getStyledDocument();
-        javax.swing.text.Style style = pane.addStyle("ColorStyle", null);
-        javax.swing.text.StyleConstants.setForeground(style, color);
-        try {
-            doc.insertString(doc.getLength(), text, style);
-        } catch (javax.swing.text.BadLocationException e) {
-            e.printStackTrace();
-        }
+        SwingUtilities.invokeLater(() -> {
+            javax.swing.text.StyledDocument doc = pane.getStyledDocument();
+            javax.swing.text.Style style = pane.addStyle("ColorStyle", null);
+            javax.swing.text.StyleConstants.setForeground(style, color);
+            try {
+                doc.insertString(doc.getLength(), text, style);
+            } catch (javax.swing.text.BadLocationException e) {
+                System.err.println("Помилка додавання тексту: " + e.getMessage());
+            }
+        });
     }
 
     private void startAnalysis() {
         String code = inputTextBox.getText();
-        outputTextPane.setText("");
+        SwingUtilities.invokeLater(() -> outputTextPane.setText(""));
         try {
             var charStream = CharStreams.fromString(code);
-            javaLLexer lexer = new javaLLexer(charStream);
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            javaLParser parser = new javaLParser(tokens);
+            javaLParser parser = getParser(charStream);
 
             parser.removeErrorListeners();
             parser.addErrorListener(new org.antlr.v4.runtime.BaseErrorListener() {
@@ -146,34 +116,72 @@ public class Main extends JFrame {
                 } else {
                     appendColoredText(outputTextPane, "\n❌ ЗНАЙДЕНО СЕМАНТИЧНІ ПОМИЛКИ (" + errors.size() + "):\n", Color.WHITE);
                     for (String err : errors) appendColoredText(outputTextPane, err + "\n", Color.RED);
+                    return;
                 }
 
                 if (!warnings.isEmpty()) {
                     appendColoredText(outputTextPane, "\n⚠️ ПОПЕРЕДЖЕННЯ ("  + warnings.size() +  "):\n", Color.WHITE);
                     for (String warn : warnings) appendColoredText(outputTextPane, warn + "\n", Color.ORANGE);
                 }
-                appendColoredText(outputTextPane, "\nДерево побудовано. Відкриття вікна візуалізації...\n", Color.WHITE);
-                showTreeWindow(parser, tree);
+
+                appendColoredText(outputTextPane, "\nПочаток генерації коду...\n", Color.YELLOW);
+                CodeGenerator codeGen = new CodeGenerator();
+                codeGen.visit(tree);
+                appendColoredText(outputTextPane, "Код згенеровано у файл output.s\n", Color.GREEN);
+
+                try {
+                    appendColoredText(outputTextPane, "Запуск GCC для створення виконуваного файлу...\n", Color.YELLOW);
+
+                    String gccCmd = "gcc";
+                    File gccFile = new File("D:\\EDC\\8sem\\Створення інтегрованих середовищ розробки\\gcc\\mingw64\\bin\\gcc.exe");
+                    if (gccFile.exists()) {
+                        gccCmd = gccFile.getAbsolutePath();
+                    }
+
+                    ProcessBuilder pb = new ProcessBuilder(gccCmd, "output.s", "-o", "program.exe");
+
+                    String workingDir = System.getProperty("user.dir");
+                    pb.directory(new File(workingDir)); 
+                    Process process = pb.start();
+
+                    java.util.Scanner s = new java.util.Scanner(process.getErrorStream()).useDelimiter("\\A");
+                    String gccOutput = s.hasNext() ? s.next() : "";
+
+                    int exitCode = process.waitFor();
+
+                    if (exitCode == 0) {
+                        appendColoredText(outputTextPane, "✅ Успішно створено program.exe!\n", Color.GREEN);
+
+                        appendColoredText(outputTextPane, "Запуск program.exe...\n", Color.YELLOW);
+                        ProcessBuilder runPb = new ProcessBuilder(workingDir + File.separator + "program.exe");
+                        runPb.directory(new File(workingDir));
+                        Process runProcess = runPb.start();
+                        int runExitCode = runProcess.waitFor();
+                        appendColoredText(outputTextPane, "Програма завершилась з кодом: " + runExitCode + "\n", Color.CYAN);
+
+                    } else {
+                        appendColoredText(outputTextPane, "❌ Помилка компіляції GCC (код " + exitCode + ").\n", Color.RED);
+                        if (!gccOutput.isEmpty()) {
+                            appendColoredText(outputTextPane, gccOutput + "\n", Color.RED);
+                        }
+                    }
+                } catch (Exception ex) {
+                    appendColoredText(outputTextPane, "Помилка виклику GCC: " + ex.getMessage() + "\n", Color.RED);
+                }
             }
 
         } catch (Exception ex) {
-            appendColoredText(outputTextPane, "Критична помилка: " + ex.getMessage(), Color.RED);
+            appendColoredText(outputTextPane, "Критична помилка: " + ex.getMessage() + "\n", Color.RED);
         }
     }
 
-    private void showTreeWindow(javaLParser parser, ParseTree tree) {
-        JFrame treeFrame = new JFrame("Abstract Syntax Tree");
-        TreeViewer viewer = new TreeViewer(Arrays.asList(parser.getRuleNames()), tree);
-        viewer.setScale(1.5); // Масштаб
-        JScrollPane scrollPane = new JScrollPane(viewer);
-        treeFrame.add(scrollPane);
-        treeFrame.setSize(600, 400);
-        treeFrame.setVisible(true);
+    private static javaLParser getParser(org.antlr.v4.runtime.CodePointCharStream charStream) {
+        javaLLexer lexer = new javaLLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        return new javaLParser(tokens);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new Main().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new Main().setVisible(true));
     }
 }

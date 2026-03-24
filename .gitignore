@@ -21,3 +21,5 @@ out/
 /src/main/java/org/labs/javaLListener.java
 /src/main/java/org/labs/javaLParser.java
 /src/main/java/org/labs/javaLVisitor.java
+/program.exe
+/output.s
