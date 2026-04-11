@@ -3,8 +3,9 @@ package org.labs;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.gui.TreeViewer;
 import java.io.File;
-
+import java.util.Arrays;
 import javax.swing.*;
 import java.util.List;
 import java.awt.*;
@@ -101,6 +102,8 @@ public class Main extends JFrame {
 
             ParseTree tree = parser.program();
 
+            showTreeWindow(parser, tree);
+
             if (parser.getNumberOfSyntaxErrors() == 0) {
                 appendColoredText(outputTextPane, "Синтаксичний аналіз успішно завершено!\n", Color.WHITE);
 
@@ -183,5 +186,15 @@ public class Main extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new Main().setVisible(true));
+    }
+    private void showTreeWindow(javaLParser parser, ParseTree tree) {
+        JFrame treeFrame = new JFrame("Abstract Syntax Tree");
+        TreeViewer viewer = new TreeViewer(Arrays.asList(parser.getRuleNames()),
+                tree);
+        viewer.setScale(1.5);
+        JScrollPane scrollPane = new JScrollPane(viewer);
+        treeFrame.add(scrollPane);
+        treeFrame.setSize(600, 400);
+        treeFrame.setVisible(true);
     }
 }

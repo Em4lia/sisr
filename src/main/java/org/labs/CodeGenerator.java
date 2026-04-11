@@ -113,22 +113,38 @@ public class CodeGenerator extends javaLBaseVisitor<Void> {
 
     private void optimizeIR() {
         Set<String> used = new HashSet<>();
+
+        for (TacInstruction instr : ir) {
+            if (instr.arg1 != null && !isNumber(instr.arg1)) {
+                used.add(instr.arg1);
+            }
+            if (instr.arg2 != null && !isNumber(instr.arg2)) {
+                used.add(instr.arg2);
+            }
+        }
         for (int i = ir.size() - 1; i >= 0; i--) {
             TacInstruction instr = ir.get(i);
-            if (instr.result != null) {
-                if (!used.contains(instr.result)) {
-                    ir.remove(i);
-                    continue;
-                }
+
+            if (instr.result != null && !used.contains(instr.result)) {
+                ir.remove(i);
             }
-            if (instr.arg1 != null && !isNumber(instr.arg1)) used.add(instr.arg1);
-            if (instr.arg2 != null && !isNumber(instr.arg2)) used.add(instr.arg2);
         }
 
-        for (int i = 0; i < ir.size() - 1; i++) {
-            if (ir.get(i).op == TacInstruction.Op.ASSIGN && ir.get(i+1).op == TacInstruction.Op.ADD
-                    && ir.get(i+1).arg2 != null && ir.get(i+1).arg2.equals("0")) {
-                ir.remove(i+1); 
+        for (TacInstruction instr : ir) {
+            if (instr.op == TacInstruction.Op.ADD) {
+                if (instr.arg2 != null && instr.arg2.equals("0")) {
+                    instr.op = TacInstruction.Op.ASSIGN;
+                    instr.arg2 = null;
+                } else if (instr.arg1 != null && instr.arg1.equals("0")) {
+                    instr.op = TacInstruction.Op.ASSIGN;
+                    instr.arg1 = instr.arg2;
+                    instr.arg2 = null;
+                }
+            } else if (instr.op == TacInstruction.Op.SUB) {
+                if (instr.arg2 != null && instr.arg2.equals("0")) {
+                    instr.op = TacInstruction.Op.ASSIGN;
+                    instr.arg2 = null;
+                }
             }
         }
     }
@@ -310,7 +326,7 @@ public class CodeGenerator extends javaLBaseVisitor<Void> {
         stackSize = offset + 8;
 
         visitChildren(ctx);           
-//        optimizeIR();
+        optimizeIR();
 
         generateAssembly("output.s", methodName); 
         return null;

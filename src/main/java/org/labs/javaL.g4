@@ -6,7 +6,7 @@ grammar javaL;
 
 program: classDeclaration+ EOF ;
 
-classDeclaration: classModifier* CLASS ID (EXTENDS ID)? LBRACE classBody RBRACE ;
+classDeclaration: classModifier* CLASS ID (EXTENDS ID)? LBRACE classBody RBRACE;
 classBody: (fieldDeclaration | methodDeclaration)*;
 classModifier: 'public' | 'private' | 'abstract' | 'static';
 

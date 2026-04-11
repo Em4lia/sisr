@@ -6,7 +6,6 @@ public class TacInstruction {
 
     public Op op;
     public String arg1, arg2, result;
-    public int labelCounter = 0;
 
     public TacInstruction(Op op, String arg1, String arg2, String result) {
         this.op = op;

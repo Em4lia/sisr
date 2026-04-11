@@ -165,7 +165,7 @@ public class SemanticAnalyzer extends javaLBaseVisitor<String> {
         loopDepth--;
 
         if (isAlwaysTrue && breakCount == breaksBefore) {
-            reportWarning(ctx.WHILE().getSymbol(), "Безкінечний цикл: умова завжди true і відсутній break.");
+            reportWarning(ctx.WHILE().getSymbol(), "Нескінченний цикл: умова завжди true і відсутній break.");
         }
         return null;
     }
